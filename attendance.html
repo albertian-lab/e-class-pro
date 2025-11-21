@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Absensi Harian — Pure JS + Tailwind</title>
+
+  <!-- Tailwind CDN (for quick usage) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/lucide.min.js"></script>
+
+  <!-- Chart.js for bar chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* small custom scrollbar to match prior look */
+    .custom-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* small animation for bell in banner */
+    @keyframes bounce-slow { 0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)} }
+    .animate-bounce-slow{ animation: bounce-slow 2s infinite; }
+
+    /* sticky table header shadow fallback */
+    thead.sticky { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(2px); }
+  </style>
+</head>
+<body class="bg-white text-slate-800 transition-colors duration-300">
+
+  <div id="app" class="max-w-6xl mx-auto p-6 space-y-6">
+
+    <!-- Header -->
+    <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+          <span class="bg-blue-600 text-white p-2 rounded-lg shadow-lg shadow-blue-500/30">
+            <i data-feather="users" class="lucide-icon"></i>
+          </span>
+          Absensi Harian
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2 text-base">Rekapitulasi kehadiran siswa Semester 1 TP 2025/2026.</p>
+      </div>
+
+      <div class="w-full lg:w-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="w-full md:w-48">
+          <label class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+            <i data-feather="calendar" class="lucide-icon"></i> Tanggal
+          </label>
+          <input id="date-input" type="date" class="w-full rounded-lg border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2.5 transition-all" />
+        </div>
+
+        <div class="w-full md:w-48">
+          <label class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+            <i data-feather="users" class="lucide-icon"></i> Kelas
+          </label>
+
+          <!-- If admin locked to a class, this box will be shown; otherwise the select -->
+          <div id="admin-locked" class="hidden w-full rounded-lg border-slate-300 bg-slate-100 dark:bg-slate-700 dark:border-slate-600 text-slate-500 dark:text-slate-300 px-4 py-2.5 flex items-center justify-between shadow-inner">
+            <span id="admin-class-text" class="font-medium"></span>
+            <i data-feather="lock" class="lucide-icon"></i>
+          </div>
+
+          <select id="class-select" class="w-full rounded-lg border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2.5 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-700">
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Status Banner -->
+    <div id="status-banner"></div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full">
+
+      <!-- Attendance Table Section -->
+      <div class="xl:col-span-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[calc(100vh-350px)] min-h-[600px]">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center backdrop-blur-sm">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-6 bg-blue-500 rounded-full"></div>
+            <h2 class="font-bold text-lg text-slate-800 dark:text-white">Daftar Siswa</h2>
+            <span id="class-badge" class="px-2 py-0.5 rounded text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"></span>
+          </div>
+          <div id="autosave-indicator" class="hidden px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold flex items-center gap-1.5">
+            <i data-feather="save" class="lucide-icon"></i> Tersimpan Otomatis
+          </div>
+        </div>
+
+        <div class="overflow-auto flex-grow custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-950 text-xs uppercase text-slate-500 dark:text-slate-400 font-bold tracking-wider">
+              <tr>
+                <th class="px-4 py-4 w-14 text-center border-b border-slate-200 dark:border-slate-800">No</th>
+                <th class="px-6 py-4 min-w-[200px] border-b border-slate-200 dark:border-slate-800">Nama Siswa</th>
+                <th class="px-4 py-4 min-w-[450px] border-b border-slate-200 dark:border-slate-800 text-center">Status Kehadiran</th>
+              </tr>
+            </thead>
+            <tbody id="students-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+          </table>
+        </div>
+
+        <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs text-slate-500 dark:text-slate-400 flex justify-between">
+          <span id="total-students">Total Siswa: 0</span>
+          <span id="present-count">Sudah Absen: 0</span>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="xl:col-span-1 space-y-6 h-full flex flex-col">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 flex-grow">
+          <h2 class="font-bold text-lg mb-6 text-slate-800 dark:text-white flex items-center gap-2">
+            <div class="w-1 h-5 bg-purple-500 rounded-full"></div>
+            Statistik Realtime
+          </h2>
+
+          <div class="h-56 w-full mb-6">
+            <canvas id="barChart" width="400" height="220"></canvas>
+          </div>
+
+          <div class="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2" id="stats-list"></div>
+        </div>
+
+        <div class="bg-blue-600 dark:bg-blue-900 rounded-2xl p-5 shadow-lg shadow-blue-500/20 text-white relative overflow-hidden group">
+          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors"></div>
+          <div class="flex gap-4 items-start relative z-10">
+            <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+              <i data-feather="clock" class="lucide-icon"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white text-base mb-1">Auto-Sync Aktif</h4>
+              <p class="text-blue-100 text-xs leading-relaxed opacity-90">Data absensi tersimpan otomatis di penyimpanan lokal browser. Data aman meskipun halaman direfresh.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+/* ===========================================================
+   Data & Utilities (mirip ../constants & helpers)
+   =========================================================== */
+
+const CLASSES = ['11P01','11P02','11P03','11P04'];
+// Simple generator to create deterministic students for a class
+function generateStudents(classId) {
+  const base = classId.charCodeAt(classId.length - 1);
+  const count = 24; // fixed class size for parity
+  const students = [];
+  for (let i=1;i<=count;i++){
+    const id = `${classId}-${String(i).padStart(3,'0')}`;
+    students.push({ id, name: `Siswa ${String(i).padStart(2,'0')} ${classId}` });
+  }
+  return students;
+}
+
+/* AttendanceStatus enum equivalent */
+const AttendanceStatus = {
+  UNSET: 'BELUM ABSEN',
+  HADIR: 'HADIR',
+  SAKIT: 'SAKIT',
+  IZIN: 'IZIN',
+  DISPENSASI: 'DISPENSASI',
+  ALPA: 'ALPA'
+};
+
+/* Colors mapping */
+const ATTENDANCE_COLORS = {
+  [AttendanceStatus.HADIR]: '#10b981',       // green-500
+  [AttendanceStatus.SAKIT]: '#f97316',       // orange-500
+  [AttendanceStatus.IZIN]: '#06b6d4',        // cyan-500
+  [AttendanceStatus.DISPENSASI]: '#f59e0b',  // amber-500
+  [AttendanceStatus.ALPA]: '#ef4444'         // red-500
+};
+
+/* LocalStorage helpers (mimic getAttendance/saveAttendance from useApp) */
+function getAttendance(classId, date) {
+  try {
+    const key = `attendance-${classId}-${date}`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) {
+    console.error('Error reading attendance', e);
+    return {};
+  }
+}
+function saveAttendance(classId, date, data) {
+  try {
+    const key = `attendance-${classId}-${date}`;
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch(e) { console.error('Error saving attendance', e); }
+}
+
+/* ===========================================================
+   App State
+   =========================================================== */
+
+let isAdminLoggedIn = false; // toggle for admin behavior; can be true to mimic admin
+let adminClass = null;       // if admin logged in and limited to class, set like '11P01'
+
+const state = {
+  selectedClass: CLASSES[0],
+  students: [],
+  attendanceData: {}, // map id -> AttendanceStatus
+  selectedDate: new Date().toISOString().split('T')[0],
+  isSaved: false,
+  currentTime: new Date()
+};
+
+/* ===========================================================
+   DOM references
+   =========================================================== */
+const classSelect = document.getElementById('class-select');
+const dateInput = document.getElementById('date-input');
+const studentsTbody = document.getElementById('students-tbody');
+const totalStudentsEl = document.getElementById('total-students');
+const presentCountEl = document.getElementById('present-count');
+const autosaveIndicator = document.getElementById('autosave-indicator');
+const classBadge = document.getElementById('class-badge');
+const adminLockedBox = document.getElementById('admin-locked');
+const adminClassText = document.getElementById('admin-class-text');
+const statusBanner = document.getElementById('status-banner');
+const statsList = document.getElementById('stats-list');
+const classBadgeDisplay = document.getElementById('class-badge');
+
+/* Chart setup */
+const ctx = document.getElementById('barChart').getContext('2d');
+let barChart = null;
+
+/* ===========================================================
+   Helpers: time, lock logic, stats
+   =========================================================== */
+
+function updateCurrentTime() {
+  state.currentTime = new Date();
+}
+
+setInterval(() => {
+  updateCurrentTime();
+  renderStatusBanner();
+}, 60 * 1000); // every minute
+
+function isLateWarning() {
+  const h = state.currentTime.getHours();
+  const m = state.currentTime.getMinutes();
+  return (h > 7) || (h === 7 && m >= 30);
+}
+function isPastCutoff() {
+  return state.currentTime.getHours() >= 8;
+}
+function isLocked() {
+  return isPastCutoff() && !isAdminLoggedIn;
+}
+
+/* ===========================================================
+   Initialization
+   =========================================================== */
+
+function init() {
+  // populate class select
+  CLASSES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    classSelect.appendChild(opt);
+  });
+
+  // set initial values
+  dateInput.value = state.selectedDate;
+  classSelect.value = state.selectedClass;
+  classBadgeDisplay.textContent = state.selectedClass;
+
+  // admin locked UI
+  applyAdminUI();
+
+  // load students for selected class
+  loadStudentsForClass(state.selectedClass);
+
+  // wire events
+  classSelect.addEventListener('change', (e) => {
+    state.selectedClass = e.target.value;
+    classBadgeDisplay.textContent = state.selectedClass;
+    loadStudentsForClass(state.selectedClass);
+  });
+
+  dateInput.addEventListener('change', (e) => {
+    state.selectedDate = e.target.value;
+    loadStudentsForClass(state.selectedClass);
+  });
+
+  // initial render chart
+  buildChart([]);
+  renderStats([]);
+  renderStatusBanner();
+
+  // attach lucide icons
+  lucide.replace();
+}
+init();
+
+/* ===========================================================
+   Load students + load attendance (mimic useEffect)
+   =========================================================== */
+
+function loadStudentsForClass(classId) {
+  // admin restriction: if admin logged in and adminClass set, force class
+  if (isAdminLoggedIn && adminClass) {
+    state.selectedClass = adminClass;
+    classSelect.value = adminClass;
+  }
+
+  const loaded = generateStudents(classId);
+  state.students = loaded;
+
+  // load saved attendance
+  const saved = getAttendance(classId, state.selectedDate);
+
+  if (Object.keys(saved).length > 0) {
+    state.attendanceData = saved;
+  } else {
+    // initialize
+    const initObj = {};
+    loaded.forEach(s => initObj[s.id] = AttendanceStatus.UNSET);
+    state.attendanceData = initObj;
+  }
+
+  state.isSaved = false;
+  renderStudentsTable();
+  updateSummary();
+  updateChartAndStats();
+}
+
+/* ===========================================================
+   Render functions
+   =========================================================== */
+
+function renderStudentsTable() {
+  studentsTbody.innerHTML = '';
+  state.students.forEach((student, index) => {
+    const tr = document.createElement('tr');
+    tr.className = 'group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors duration-150';
+
+    const noTd = document.createElement('td');
+    noTd.className = 'px-4 py-3 text-sm text-center font-mono text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300';
+    noTd.textContent = String(index+1).padStart(2,'0');
+
+    const nameTd = document.createElement('td');
+    nameTd.className = 'px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors';
+    nameTd.textContent = student.name;
+
+    const actionTd = document.createElement('td');
+    actionTd.className = 'px-4 py-2';
+
+    const gridDiv = document.createElement('div');
+    gridDiv.className = `grid grid-cols-5 gap-2 max-w-xl mx-auto ${isLocked() ? 'opacity-50 grayscale pointer-events-none select-none' : ''}`;
+
+    const statusKeys = [AttendanceStatus.HADIR, AttendanceStatus.SAKIT, AttendanceStatus.IZIN, AttendanceStatus.DISPENSASI, AttendanceStatus.ALPA];
+    statusKeys.forEach(status => {
+      const isSelected = state.attendanceData[student.id] === status;
+      const baseColor = ATTENDANCE_COLORS[status];
+
+      const btn = document.createElement('button');
+      btn.className = [
+        'relative h-9 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all duration-200 flex items-center justify-center',
+        isSelected ? 'text-white shadow-md transform scale-105 ring-2 ring-offset-1' : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700',
+        isLocked() ? 'cursor-not-allowed' : 'cursor-pointer'
+      ].join(' ');
+      btn.disabled = isLocked();
+      btn.style.borderColor = isSelected ? baseColor : undefined;
+      if (isSelected) {
+        btn.style.backgroundColor = baseColor;
+        btn.style.boxShadow = `0 4px 12px -2px ${baseColor}66`;
+      }
+
+      // label
+      let label = '';
+      if (status === AttendanceStatus.HADIR) label = 'Hadir';
+      else if (status === AttendanceStatus.SAKIT) label = 'Sakit';
+      else if (status === AttendanceStatus.IZIN) label = 'Izin';
+      else if (status === AttendanceStatus.DISPENSASI) label = 'Disp';
+      else label = 'Alpa';
+      btn.textContent = label;
+
+      btn.addEventListener('click', () => {
+        if (isLocked()) return;
+        handleStatusChange(student.id, status);
+      });
+
+      gridDiv.appendChild(btn);
+    });
+
+    actionTd.appendChild(gridDiv);
+    tr.appendChild(noTd);
+    tr.appendChild(nameTd);
+    tr.appendChild(actionTd);
+    studentsTbody.appendChild(tr);
+  });
+}
+
+/* ===========================================================
+   Handle status change (update state + autosave)
+   =========================================================== */
+function handleStatusChange(studentId, status) {
+  const newData = { ...state.attendanceData, [studentId]: status };
+  state.attendanceData = newData;
+  // save immediately
+  saveAttendance(state.selectedClass, state.selectedDate, newData);
+  state.isSaved = true;
+  renderAutosave(true);
+  setTimeout(() => {
+    state.isSaved = false;
+    renderAutosave(false);
+  }, 2000);
+  renderStudentsTable();
+  updateSummary();
+  updateChartAndStats();
+}
+
+function renderAutosave(show) {
+  if (show) autosaveIndicator.classList.remove('hidden');
+  else autosaveIndicator.classList.add('hidden');
+}
+
+/* ===========================================================
+   Status Banner render (locked / admin / warning)
+   =========================================================== */
+function renderStatusBanner() {
+  statusBanner.innerHTML = '';
+
+  if (isLocked()) {
+    const el = document.createElement('div');
+    el.className = 'rounded-xl p-4 border flex items-start md:items-center gap-4 shadow-sm bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700';
+    el.innerHTML = `
+      <div class="p-2.5 rounded-full shrink-0 bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+        <i data-feather="lock" class="lucide-icon"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-sm font-bold uppercase tracking-wide mb-1 text-slate-700 dark:text-slate-300">Absensi Ditutup</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400">Waktu pengisian absensi telah berakhir (08:00 WIB). Silakan hubungi <span class="font-bold">Admin Kelas</span> atau Guru Piket jika ada perubahan data.</p>
+      </div>
+    `;
+    statusBanner.appendChild(el);
+    lucide.replace();
+    return;
+  }
+
+  if (isAdminLoggedIn && isPastCutoff()) {
+    const el = document.createElement('div');
+    el.className = 'rounded-xl p-4 border flex items-start md:items-center gap-4 shadow-sm bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+    el.innerHTML = `
+      <div class="p-2.5 rounded-full shrink-0 bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200">
+        <i data-feather="shield" class="lucide-icon"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-sm font-bold uppercase tracking-wide mb-1 text-blue-700 dark:text-blue-300">Mode Admin Akses Penuh</h3>
+        <p class="text-sm text-blue-600 dark:text-blue-200">Waktu normal pengisian telah habis, namun Anda memiliki akses Admin untuk mengubah data absensi kapan saja.</p>
+      </div>
+    `;
+    statusBanner.appendChild(el);
+    lucide.replace();
+    return;
+  }
+
+  // standard banner (warning or reminder)
+  const late = isLateWarning();
+  const wrapper = document.createElement('div');
+  wrapper.className = `rounded-xl p-4 border flex items-start md:items-center gap-4 shadow-sm transition-colors duration-300 ${late ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'}`;
+  wrapper.innerHTML = `
+    <div class="p-2.5 rounded-full shrink-0 ${late ? 'bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-200' : 'bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-200'}">
+      <i data-feather="${late ? 'alert-triangle' : 'bell'}" class="lucide-icon ${late ? '' : 'animate-bounce-slow'}"></i>
+    </div>
+    <div class="flex-1">
+      <h3 class="text-sm font-bold uppercase tracking-wide mb-1 ${late ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}">${late ? 'Peringatan Batas Waktu' : 'Pengingat Absensi'}</h3>
+      <p class="text-sm ${late ? 'text-red-600 dark:text-red-200' : 'text-amber-600 dark:text-amber-200'}">Mohon segera melengkapi data kehadiran. Batas waktu pengisian mandiri adalah pukul <span class="font-bold">08:00 WIB</span>. ${late ? '<span class="block mt-1 font-semibold italic opacity-90">Waktu hampir habis!</span>' : ''}</p>
+    </div>
+  `;
+  statusBanner.appendChild(wrapper);
+  lucide.replace();
+}
+
+/* ===========================================================
+   Chart & Stats
+   =========================================================== */
+
+function computeStats() {
+  // count occurrences for each status except UNSET
+  const counts = {};
+  Object.values(AttendanceStatus).forEach(s => counts[s] = 0);
+  Object.values(state.attendanceData).forEach(v => {
+    if (v && v !== AttendanceStatus.UNSET) counts[v] = (counts[v] || 0) + 1;
+  });
+
+  // produce stats array in the same order we used in React
+  const order = [AttendanceStatus.HADIR, AttendanceStatus.SAKIT, AttendanceStatus.IZIN, AttendanceStatus.DISPENSASI, AttendanceStatus.ALPA];
+  const stats = order.map(s => {
+    return { name: s === AttendanceStatus.DISPENSASI ? 'Disp' : s, fullName: s, count: counts[s] || 0 };
+  }).filter(x => x.fullName !== AttendanceStatus.UNSET);
+  return stats;
+}
+
+function buildChart(stats) {
+  const labels = stats.map(s => s.name);
+  const data = stats.map(s => s.count);
+  const bgColors = stats.map(s => ATTENDANCE_COLORS[s.fullName]);
+
+  if (barChart) {
+    barChart.data.labels = labels;
+    barChart.data.datasets[0].data = data;
+    barChart.data.datasets[0].backgroundColor = bgColors;
+    barChart.update();
+    return;
+  }
+
+  barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Count',
+        data,
+        backgroundColor: bgColors,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleColor: '#94a3b8',
+          bodyColor: '#fff',
+          titleFont: { size: 12 },
+          bodyFont: { size: 12 },
+          displayColors: false
+        },
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#94a3b8', font: { size: 11 } },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: { color: '#94a3b8', font: { size: 10 } },
+          beginAtZero: true,
+          precision: 0,
+          grid: { color: '#47556933' },
+          border: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function updateChartAndStats() {
+  const stats = computeStats();
+  buildChart(stats);
+  renderStats(stats);
+}
+
+function renderStats(stats) {
+  statsList.innerHTML = '';
+  stats.forEach(stat => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-colors';
+    row.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="w-3 h-3 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" style="background-color:${ATTENDANCE_COLORS[stat.fullName]}"></div>
+        <span class="text-slate-700 dark:text-slate-300 font-medium">${stat.fullName}</span>
+      </div>
+      <span class="font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-700 px-2.5 py-0.5 rounded-md shadow-sm border border-slate-100 dark:border-slate-600 min-w-[30px] text-center">${stat.count}</span>
+    `;
+    statsList.appendChild(row);
+  });
+
+  // help card for "Belum Absen"
+  const remaining = state.students.length - Object.values(state.attendanceData).filter(s => s !== AttendanceStatus.UNSET).length;
+  const helpDiv = document.createElement('div');
+  helpDiv.className = 'pt-4 mt-4 border-t border-slate-200 dark:border-slate-700';
+  helpDiv.innerHTML = `
+    <div class="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center gap-3">
+        <i data-feather="help-circle" class="lucide-icon w-4 h-4 text-slate-400"></i>
+        <span class="text-slate-500 dark:text-slate-400 font-medium">Belum Absen</span>
+      </div>
+      <span class="font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 px-2.5 py-0.5 rounded-md shadow-sm min-w-[30px] text-center">${remaining}</span>
+    </div>
+  `;
+  statsList.appendChild(helpDiv);
+  lucide.replace();
+}
+
+/* ===========================================================
+   Summary update
+   =========================================================== */
+function updateSummary() {
+  totalStudentsEl.textContent = `Total Siswa: ${state.students.length}`;
+  presentCountEl.textContent = `Sudah Absen: ${Object.values(state.attendanceData).filter(s => s !== AttendanceStatus.UNSET).length}`;
+}
+
+/* ===========================================================
+   Admin UI toggle (to mimic useApp's isAdminLoggedIn/adminClass)
+   =========================================================== */
+function applyAdminUI() {
+  if (isAdminLoggedIn && adminClass) {
+    adminLockedBox.classList.remove('hidden');
+    document.getElementById('class-select').classList.add('hidden');
+    adminClassText.textContent = adminClass;
+    classBadgeDisplay.textContent = adminClass;
+  } else {
+    adminLockedBox.classList.add('hidden');
+    document.getElementById('class-select').classList.remove('hidden');
+  }
+}
+
+/* ===========================================================
+   Utilities to trigger initial chart/stats update after DOM paint
+   =========================================================== */
+function updateChartAndStatsDebounced() {
+  setTimeout(updateChartAndStats, 0);
+}
+
+/* ===========================================================
+   Expose some controls to console for testing (optional)
+   =========================================================== */
+window.__ATT = {
+  setAdmin: (val, cls=null) => { isAdminLoggedIn = !!val; adminClass = cls; applyAdminUI(); loadStudentsForClass(state.selectedClass); renderStatusBanner(); },
+  setThemeDark: (d) => { document.documentElement.classList.toggle('dark', !!d); }
+};
+
+/* ===========================================================
+   Final initial calls to make UI consistent
+   =========================================================== */
+renderStudentsTable();
+updateSummary();
+updateChartAndStatsDebounced();
+
+/* Attach lucide icons now */
+lucide.replace();
+
+</script>
+</body>
+</html>
