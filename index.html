@@ -47,18 +47,21 @@
     <!-- Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Chart.js (keberadaan tidak mengganggu tampilan) -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Jika Anda punya style.css eksternal, tetap tersambung -->
     <link rel="stylesheet" href="style.css">
-
-    <style>
-      /* Pastikan inter font digunakan */
-      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-      /* kecilkan kemungkinan overflow horizontal */
-      html,body { overflow-x: hidden; }
-    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1"
+  }
+}
+</script>
 </head>
 <body class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden font-sans selection:bg-blue-500 selection:text-white">
 
@@ -66,7 +69,7 @@
     <div id="background-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-slate-200/80 via-transparent to-blue-100/50 dark:from-slate-900 dark:via-slate-950 dark:to-blue-900/40"></div>
         <div class="absolute inset-0 opacity-[0.15] dark:opacity-[0.2]" style="background-image: linear-gradient(#64748b 1px, transparent 1px), linear-gradient(90deg, #64748b 1px, transparent 1px); background-size: 40px 40px;"></div>
-        <!-- Particles injected by JS (keystroke: background particles & symbols) -->
+        <!-- Particles injected by JS -->
     </div>
 
     <!-- Navbar -->
@@ -150,345 +153,12 @@
         <p>© 2025 E-Class Pro. Created for Educational Purposes.</p>
     </footer>
 
-    <!-- Application logic (Vanilla JS version of script.js) -->
-    <script>
-    // Single-file vanilla implementation replacing React/script.js
-    (function(){
-        // expose app global to keep existing onclick calls working
-        window.app = window.app || {};
-
-        // Helpers
-        const helpers = {
-            toggleTheme() {
-                const isDark = document.documentElement.classList.toggle('dark');
-                try { localStorage.setItem('ec_dark', isDark ? '1' : '0'); } catch(e){}
-            },
-            formatDate(d = new Date()) {
-                return d.toISOString().split('T')[0];
-            }
-        };
-
-        // Router & renderers
-        const routes = {};
-        const appRoot = document.getElementById('app');
-
-        // Simple local DB (localStorage)
-        const DB = {
-            save(key, value) { localStorage.setItem(key, JSON.stringify(value)); },
-            load(key, fallback) {
-                try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-                catch(e) { return fallback; }
-            }
-        };
-
-        // initial theme from storage
-        (function initTheme(){
-            const stored = DB.load('ec_dark','0');
-            if (stored === '1' || stored === 1 || stored === true || stored === 'true') {
-                document.documentElement.classList.add('dark');
-            }
-        })();
-
-        // small data/helpers for pages
-        const CLASSES = ['11P01','11P02','11P03','11P04','11P05','11P06','11P07','11P08','11P09','11P10','11P11'];
-        function generateStudents(classId) {
-            const n = 24;
-            return Array.from({length:n}, (_,i)=>({ id: `${classId}-${String(i+1).padStart(3,'0')}`, name: `Siswa ${String(i+1).padStart(2,'0')} ${classId}` }));
-        }
-
-        // Page: Home
-        routes.home = () => {
-            appRoot.innerHTML = `
-                <div class="rounded-2xl bg-white dark:bg-slate-900 shadow-lg p-6 animate-pop-in">
-                    <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Selamat datang di E-Class Pro</h1>
-                    <p class="text-slate-500 dark:text-slate-400 mt-2">Gunakan menu di atas untuk berpindah modul. Semua data tersimpan di browser (localStorage).</p>
-                </div>
-            `;
-        };
-
-        // Page: Attendance
-        routes.attendance = () => {
-            appRoot.innerHTML = `
-                <div class="space-y-6 animate-pop-in">
-                    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Absensi Harian</h1>
-                            <p class="text-slate-500 dark:text-slate-400">Rekapitulasi kehadiran siswa Semester 1 TP 2025/2026.</p>
-                        </div>
-                        <div class="w-full md:w-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tanggal</label>
-                                <input id="att-date" type="date" class="w-full rounded-lg border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm p-2" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Kelas</label>
-                                <select id="att-class" class="w-full rounded-lg border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm p-2"></select>
-                            </div>
-                        </div>
-                    </header>
-
-                    <div id="att-banner" class="rounded-xl p-4 border flex items-start gap-4 shadow-sm bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 hidden">
-                        <div class="p-2.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3"/></svg>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-sm font-bold uppercase tracking-wide mb-1 text-amber-700 dark:text-amber-300">Pengingat Absensi</h3>
-                            <p class="text-sm text-amber-600 dark:text-amber-200">Isi data kehadiran sebelum pukul 08:00 WIB.</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full">
-                        <div class="xl:col-span-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[65vh]">
-                            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2 h-6 bg-blue-500 rounded-full"></div>
-                                    <h2 class="font-bold text-lg text-slate-800 dark:text-white">Daftar Siswa</h2>
-                                    <span id="att-class-badge" class="px-2 py-0.5 rounded text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 ml-2"></span>
-                                </div>
-                                <div id="att-saved" class="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold hidden">Tersimpan Otomatis</div>
-                            </div>
-
-                            <div class="overflow-auto flex-grow custom-scrollbar">
-                                <table class="w-full text-left border-collapse">
-                                    <thead class="bg-slate-100 dark:bg-slate-950 text-xs uppercase text-slate-500 dark:text-slate-400 font-bold tracking-wider sticky top-0 z-20">
-                                        <tr>
-                                            <th class="px-4 py-4 w-14 text-center">No</th>
-                                            <th class="px-6 py-4 min-w-[200px]">Nama Siswa</th>
-                                            <th class="px-4 py-4 min-w-[450px] text-center">Status Kehadiran</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="att-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs text-slate-500 dark:text-slate-400 flex justify-between">
-                                <span id="att-total">Total Siswa: 0</span>
-                                <span id="att-counted">Sudah Absen: 0</span>
-                            </div>
-                        </div>
-
-                        <div class="xl:col-span-1 space-y-6 h-full flex flex-col">
-                            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 flex-grow">
-                                <h2 class="font-bold text-lg mb-6 text-slate-800 dark:text-white">Statistik Realtime</h2>
-                                <div id="att-stats" class="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2"></div>
-                            </div>
-
-                            <div class="bg-blue-600 dark:bg-blue-900 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden group">
-                                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
-                                <div class="flex gap-4 items-start">
-                                    <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3"/></svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-white text-base mb-1">Auto-Sync Aktif</h4>
-                                        <p class="text-blue-100 text-xs leading-relaxed opacity-90">Data absensi tersimpan otomatis di penyimpanan lokal browser. Data aman meskipun halaman direfresh.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // populate class select and logic
-            const sel = document.getElementById('att-class');
-            CLASSES.forEach(c => sel.appendChild(Object.assign(document.createElement('option'), { value:c, textContent:c })));
-            // load last values
-            const lastClass = DB.load('ec_last_class', CLASSES[0]);
-            const lastDate = DB.load('ec_last_date', helpers.formatDate());
-            sel.value = lastClass;
-            document.getElementById('att-date').value = lastDate;
-
-            // render table
-            function getKey(cls, date) { return `att_${cls}_${date}`; }
-            function loadAttendance(cls, date) {
-                const key = getKey(cls, date);
-                const stored = DB.load(key, null);
-                const students = generateStudents(cls);
-                const initial = {};
-                students.forEach(s => initial[s.id] = stored && stored[s.id] ? stored[s.id] : 'UNSET');
-                return { students, data: initial };
-            }
-
-            let { students, data } = loadAttendance(sel.value, document.getElementById('att-date').value);
-
-            function renderTable() {
-                const tbody = document.getElementById('att-tbody');
-                tbody.innerHTML = '';
-                students.forEach((s, idx) => {
-                    const row = document.createElement('tr');
-                    row.className = 'group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors duration-150';
-                    row.innerHTML = `
-                        <td class="px-4 py-3 text-sm text-center font-mono text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">${String(idx+1).padStart(2,'0')}</td>
-                        <td class="px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200">${s.name}</td>
-                        <td class="px-4 py-2"><div class="grid grid-cols-5 gap-2 max-w-xl mx-auto" id="btns-${s.id}"></div></td>
-                    `;
-                    tbody.appendChild(row);
-                    const btns = document.getElementById(`btns-${s.id}`);
-                    const statuses = ['HADIR','SAKIT','IZIN','DISPENSASI','ALPA'];
-                    statuses.forEach(st => {
-                        const btn = document.createElement('button');
-                        btn.textContent = st === 'HADIR' ? 'Hadir' : st === 'SAKIT' ? 'Sakit' : st === 'IZIN' ? 'Izin' : st === 'DISPENSASI' ? 'Disp' : 'Alpa';
-                        btn.className = 'relative h-9 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all duration-200 flex items-center justify-center';
-                        if (data[s.id] === st) {
-                            btn.classList.add('text-white', 'shadow-md');
-                            btn.style.backgroundColor = st === 'HADIR' ? '#16a34a' : st === 'SAKIT' ? '#f97316' : st === 'IZIN' ? '#06b6d4' : st === 'DISPENSASI' ? '#f59e0b' : '#ef4444';
-                        } else {
-                            btn.classList.add('bg-white','dark:bg-slate-800','text-slate-500','border','border-slate-200','dark:border-slate-700','hover:bg-slate-50','dark:hover:bg-slate-700');
-                        }
-                        btn.onclick = () => {
-                            data[s.id] = st;
-                            // save
-                            DB.save(getKey(sel.value, document.getElementById('att-date').value), data);
-                            document.getElementById('att-saved').classList.remove('hidden');
-                            setTimeout(()=> document.getElementById('att-saved').classList.add('hidden'), 1200);
-                            renderTable();
-                            renderStats();
-                        };
-                        btns.appendChild(btn);
-                    });
-                });
-                document.getElementById('att-total').textContent = `Total Siswa: ${students.length}`;
-                const counted = Object.values(data).filter(v => v && v !== 'UNSET').length;
-                document.getElementById('att-counted').textContent = `Sudah Absen: ${counted}`;
-            }
-
-            function renderStats() {
-                const statWrap = document.getElementById('att-stats');
-                statWrap.innerHTML = '';
-                const counts = { HADIR:0, SAKIT:0, IZIN:0, DISPENSASI:0, ALPA:0 };
-                Object.values(data).forEach(v => { if (v && counts.hasOwnProperty(v)) counts[v]++; });
-                const entries = [
-                    { key:'HADIR', label:'Hadir', color:'bg-green-500' },
-                    { key:'SAKIT', label:'Sakit', color:'bg-amber-500' },
-                    { key:'IZIN', label:'Izin', color:'bg-cyan-500' },
-                    { key:'DISPENSASI', label:'Disp', color:'bg-amber-400' },
-                    { key:'ALPA', label:'Alpa', color:'bg-red-500' }
-                ];
-                entries.forEach(e => {
-                    const el = document.createElement('div');
-                    el.className = 'flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700';
-                    el.innerHTML = `<div class="flex items-center gap-3"><div class="w-3 h-3 rounded-full ${e.color}"></div><span class="text-slate-700 dark:text-slate-300 font-medium">${e.label}</span></div><span class="font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-700 px-2.5 py-0.5 rounded-md">${counts[e.key] || 0}</span>`;
-                    statWrap.appendChild(el);
-                });
-            }
-
-            // initial render
-            renderTable();
-            renderStats();
-
-            // react to class/date change
-            sel.onchange = () => {
-                DB.save('ec_last_class', sel.value);
-                const loaded = loadAttendance(sel.value, document.getElementById('att-date').value);
-                students = loaded.students; data = loaded.data;
-                document.getElementById('att-class-badge').textContent = sel.value;
-                renderTable(); renderStats();
-            };
-            document.getElementById('att-date').onchange = () => {
-                DB.save('ec_last_date', document.getElementById('att-date').value);
-                const loaded = loadAttendance(sel.value, document.getElementById('att-date').value);
-                students = loaded.students; data = loaded.data;
-                renderTable(); renderStats();
-            };
-
-            // set badge
-            document.getElementById('att-class-badge').textContent = sel.value;
-        };
-
-        // Page: Schedule
-        routes.schedule = () => {
-            // static example schedule same visual style as original
-            const SCHEDULES = {
-                'Senin': [{time:'07:00', subject:'Matematika'}, {time:'08:30', subject:'ISTIRAHAT'}, {time:'09:00', subject:'Fisika'}],
-                'Selasa': [{time:'07:00', subject:'Bahasa Indonesia'}, {time:'08:30', subject:'ISTIRAHAT'}, {time:'09:00', subject:'Informatika'}],
-                'Rabu': [{time:'07:00', subject:'Sejarah'}, {time:'08:30', subject:'ISTIRAHAT'}, {time:'09:00', subject:'Biologi'}]
-            };
-            appRoot.innerHTML = `<div class="space-y-6 animate-pop-in"> <header class="flex justify-between items-center"> <div><h1 class="text-3xl font-bold text-slate-800 dark:text-white">Jadwal Pelajaran</h1><p class="text-slate-500 dark:text-slate-400">Jadwal aktif Semester 1 TP 2025/2026.</p></div></header><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"> ${Object.entries(SCHEDULES).map(([day,list])=>`<div class="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 group"><div class="bg-slate-50 dark:bg-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800"><h2 class="font-bold text-lg text-slate-800 dark:text-white uppercase tracking-wider">${day}</h2></div><div class="p-4"><ul class="space-y-3">${list.map(l=>`<li class="relative pl-6 border-l-2 ${l.subject==='ISTIRAHAT'?'border-yellow-300 dark:border-yellow-600':'border-slate-200 dark:border-slate-700'} pb-2 last:pb-0 last:border-0"><div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full ${l.subject==='ISTIRAHAT'?'bg-yellow-400':'bg-blue-500'} ring-4 ring-white dark:ring-slate-900"></div><div class="flex flex-col"><span class="text-xs font-semibold ${l.subject==='ISTIRAHAT'?'text-yellow-600 dark:text-yellow-500':'text-blue-600 dark:text-blue-400'}">${l.time}</span><span class="text-sm font-bold ${l.subject==='ISTIRAHAT'?'text-slate-500 italic':'text-slate-900 dark:text-white'}">${l.subject}</span></div></li>`).join('')}</ul></div></div>`).join('')} </div></div>`;
-        };
-
-        // Page: Assignments
-        routes.assignments = () => {
-            appRoot.innerHTML = `<div class="rounded-2xl bg-white dark:bg-slate-900 shadow-xl p-6 animate-pop-in"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Tugas</h2></div><div id="assign-list" class="space-y-3"></div><div class="mt-4 flex gap-2"><input id="assign-input" class="flex-grow rounded-lg border px-3 py-2" placeholder="Masukkan judul tugas..."/><button id="assign-add" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Tambah</button></div></div>`;
-            const listEl = document.getElementById('assign-list');
-            const input = document.getElementById('assign-input');
-            const addBtn = document.getElementById('assign-add');
-
-            let tasks = DB.load('ec_tasks', []);
-            function renderTasks(){
-                listEl.innerHTML = tasks.length ? tasks.map((t,i)=>`<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border flex justify-between items-center"><div><div class="font-semibold">${t.title}</div><div class="text-xs text-slate-500">${t.meta||''}</div></div><div class="flex gap-2"><button data-del="${i}" class="px-2 py-1 text-xs bg-red-600 text-white rounded">Hapus</button></div></div>`).join('') : '<div class="text-sm text-slate-400">Belum ada tugas.</div>';
-                listEl.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', ()=> { tasks.splice(Number(b.dataset.del),1); DB.save('ec_tasks',tasks); renderTasks(); }));
-            }
-            renderTasks();
-            addBtn.addEventListener('click', ()=> {
-                const v = input.value.trim(); if(!v) return; tasks.push({ title: v, meta: '' }); DB.save('ec_tasks',tasks); input.value=''; renderTasks();
-            });
-        };
-
-        // Page: Groups (placeholder)
-        routes.groups = () => {
-            appRoot.innerHTML = `<div class="rounded-2xl bg-white dark:bg-slate-900 shadow-lg p-6 animate-pop-in"><h2 class="text-xl font-bold">Kelompok</h2><p class="text-slate-500 dark:text-slate-400">Fitur kelompok placeholder.</p></div>`;
-        };
-
-        // Page: Admin (placeholder)
-        routes.admin = () => {
-            appRoot.innerHTML = `<div class="rounded-2xl bg-white dark:bg-slate-900 shadow-lg p-6 animate-pop-in"><h2 class="text-xl font-bold">Admin</h2><p class="text-slate-500 dark:text-slate-400">Halaman admin placeholder.</p></div>`;
-        };
-
-        // Router object exposed globally for inline onclick calls
-        const router = {
-            navigate(name) {
-                if (!routes[name]) name = 'home';
-                routes[name]();
-                // update active nav visual
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('text-blue-600', b.dataset.target === name));
-                // hide mobile menu if open
-                const mm = document.getElementById('mobile-menu');
-                if (mm && !mm.classList.contains('hidden')) mm.classList.add('hidden');
-                // ensure lucide re-render icons (in case new icons inserted)
-                if (window.lucide) try { window.lucide.createIcons(); } catch(e){}
-            }
-        };
-
-        // populate initial app object
-        app.router = router;
-        app.helpers = helpers;
-
-        // initial route
-        router.navigate('home');
-
-        // Particles/background symbols (kept subtle like original)
-        (function particles(){
-            const symbols = ["∑","π","∞","Ψ","ħ","DNA","CO₂","H₂O","{ }","</>","λ","α","β","Ω","⚛"];
-            const colors = ['text-[rgba(255,60,60,0.32)]','text-[rgba(0,255,170,0.30)]','text-[rgba(0,150,255,0.32)]','text-[rgba(190,0,255,0.30)]'];
-            const container = document.getElementById('background-container');
-            const partWrap = document.createElement('div');
-            partWrap.id = 'particles';
-            partWrap.className = 'absolute inset-0 pointer-events-none';
-            container.appendChild(partWrap);
-            const cols = 10, rows = 18;
-            for (let r=0;r<rows;r++){
-                for (let c=0;c<cols;c++){
-                    const el = document.createElement('div');
-                    const char = symbols[Math.floor(Math.random()*symbols.length)];
-                    const color = colors[Math.floor(Math.random()*colors.length)];
-                    el.textContent = char;
-                    el.className = `absolute font-mono font-bold select-none ${color} animate-float`;
-                    el.style.left = (c/cols*100 + Math.random()*5) + '%';
-                    el.style.top = (r/rows*100 + Math.random()*3) + '%';
-                    el.style.opacity = (Math.random()*0.35 + 0.18).toString();
-                    el.style.fontSize = (Math.random()*1.2 + 0.8) + 'rem';
-                    el.style.transform = `rotate(${Math.floor(Math.random()*360)}deg)`;
-                    el.style.zIndex = '-1';
-                    partWrap.appendChild(el);
-                }
-            }
-        })();
-
-        // Initialize lucide icons after DOM ready
-        document.addEventListener('DOMContentLoaded', () => { if (window.lucide) try { window.lucide.createIcons(); } catch(e){} });
-
-    })();
-    </script>
+    <!-- Logic -->
+    <script src="script.js"></script>
 </body>
 </html>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script> 
+
+<script type="module" src="path/to/attendance.js"></script>
