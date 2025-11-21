@@ -1,164 +1,262 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Class Pro</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0f172a', 
-                        secondary: '#1e293b',
-                        accent: '#3b82f6',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'float': 'float 20s infinite ease-in-out',
-                        'spin-slow': 'spin 8s linear infinite',
-                        'pop-in': 'popIn 0.3s ease-out forwards',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-                            '33%': { transform: 'translateY(-20px) rotate(5deg)' },
-                            '66%': { transform: 'translateY(20px) rotate(-5deg)' },
-                        },
-                        popIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.95)' },
-                            '100%': { opacity: '1', transform: 'scale(1)' },
-                        }
-                    }
-                }
-            }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>E-Class Pro — Local Database Edition</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: { primary: '#0f172a', accent: '#3b82f6' },
+          animation: { float: 'float 20s infinite ease-in-out', 'pop-in': 'popIn .28s ease-out forwards' },
+          keyframes: {
+            float: { '0%,100%': { transform: 'translateY(0) rotate(0deg)' }, '33%': { transform: 'translateY(-18px) rotate(4deg)' }, '66%': { transform: 'translateY(18px) rotate(-4deg)' } },
+            popIn: { '0%': { opacity: 0, transform: 'scale(.98)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+          }
         }
-    </script>
+      }
+    };
+  </script>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Icons (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <link rel="stylesheet" href="style.css">
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.4.1"
-  }
-}
-</script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width: 9px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.6); border-radius: 6px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71,85,105,0.5); }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden font-sans selection:bg-blue-500 selection:text-white">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans">
 
-    <!-- Background Container -->
-    <div id="background-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-200/80 via-transparent to-blue-100/50 dark:from-slate-900 dark:via-slate-950 dark:to-blue-900/40"></div>
-        <div class="absolute inset-0 opacity-[0.15] dark:opacity-[0.2]" style="background-image: linear-gradient(#64748b 1px, transparent 1px), linear-gradient(90deg, #64748b 1px, transparent 1px); background-size: 40px 40px;"></div>
-        <!-- Particles injected by JS -->
-    </div>
-
-    <!-- Navbar -->
-    <nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center justify-center">
-                    <a href="#" onclick="app.router.navigate('home'); return false;" class="flex-shrink-0 flex items-center gap-3 group select-none">
-                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
-                            <i data-lucide="atom" class="animate-spin-slow"></i>
-                        </div>
-                        <div class="flex flex-col justify-center h-10">
-                            <span class="font-black text-xl text-slate-800 dark:text-white tracking-tighter leading-none">E-CLASS</span>
-                            <span class="text-[0.65rem] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.38em] leading-none mt-1">PRO</span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-2">
-                    <button onclick="app.router.navigate('home')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="home">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Home
-                    </button>
-                    <button onclick="app.router.navigate('attendance')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="attendance">
-                        <i data-lucide="activity" class="w-4 h-4"></i> Absensi
-                    </button>
-                    <button onclick="app.router.navigate('schedule')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="schedule">
-                        <i data-lucide="calendar" class="w-4 h-4"></i> Jadwal
-                    </button>
-                    <button onclick="app.router.navigate('assignments')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="assignments">
-                        <i data-lucide="book-open" class="w-4 h-4"></i> Tugas
-                    </button>
-                    <button onclick="app.router.navigate('groups')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="groups">
-                        <i data-lucide="users" class="w-4 h-4"></i> Kelompok
-                    </button>
-                    <button onclick="app.router.navigate('admin')" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300" data-target="admin">
-                        <i data-lucide="shield" class="w-4 h-4"></i> Admin
-                    </button>
-                    
-                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
-                    
-                    <button onclick="app.helpers.toggleTheme()" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                        <i data-lucide="moon" class="block dark:hidden w-4 h-4"></i>
-                        <i data-lucide="sun" class="hidden dark:block w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
-                    <button onclick="app.helpers.toggleTheme()" class="mr-2 p-2 rounded-md text-slate-600 dark:text-slate-300">
-                        <i data-lucide="moon" class="block dark:hidden w-5 h-5"></i>
-                        <i data-lucide="sun" class="hidden dark:block w-5 h-5"></i>
-                    </button>
-                    <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
+  <div class="min-h-screen flex flex-col">
+    <nav class="bg-white/70 dark:bg-slate-900/70 backdrop-blur sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-lg animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div>
+            <div class="text-lg font-bold">E-CLASS <span class="text-xs font-semibold text-blue-600 uppercase">PRO</span></div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Sistem Absensi • Jadwal • Tugas</div>
+          </div>
         </div>
 
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 absolute w-full shadow-xl">
-            <div class="px-4 pt-2 pb-4 space-y-2">
-                <a href="#" onclick="app.router.navigate('home'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Home</a>
-                <a href="#" onclick="app.router.navigate('attendance'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="activity" class="w-5 h-5"></i> Absensi</a>
-                <a href="#" onclick="app.router.navigate('schedule'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="calendar" class="w-5 h-5"></i> Jadwal</a>
-                <a href="#" onclick="app.router.navigate('assignments'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="book-open" class="w-5 h-5"></i> Tugas</a>
-                <a href="#" onclick="app.router.navigate('groups'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="users" class="w-5 h-5"></i> Kelompok</a>
-                <a href="#" onclick="app.router.navigate('admin'); return false;" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="shield" class="w-5 h-5"></i> Admin</a>
-            </div>
+        <div class="hidden md:flex items-center gap-2">
+          <button class="nav-btn px-3 py-2 rounded-md" data-target="home">Home</button>
+          <button class="nav-btn px-3 py-2 rounded-md" data-target="schedule">Jadwal</button>
+          <button class="nav-btn px-3 py-2 rounded-md" data-target="attendance">Absensi</button>
+          <button class="nav-btn px-3 py-2 rounded-md" data-target="assignments">Tugas</button>
+          <button id="themeToggle" class="ml-4 px-3 py-2 rounded-md bg-slate-100 dark:bg-slate-800">Tema</button>
         </div>
+      </div>
     </nav>
 
-    <!-- Main Content Area (SPA Render Target) -->
-    <main id="app" class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 min-h-screen">
-        <!-- Content will be injected here by script.js -->
-    </main>
+    <main id="app" class="flex-grow max-w-6xl mx-auto p-6"></main>
 
-    <footer class="relative z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur text-center py-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 mt-auto">
-        <p>© 2025 E-Class Pro. Created for Educational Purposes.</p>
+    <footer class="text-center py-6 text-sm text-slate-500 dark:text-slate-400">
+      © 2025 E-Class Pro — Local Database Edition
     </footer>
+  </div>
 
-    <!-- Logic -->
-    <script src="script.js"></script>
+<script>
+(function(){
+
+  /* ==========================
+     DATABASE LOCAL / STORAGE
+     ========================== */
+
+  const DB = {
+    load(key, fallback){ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); },
+    save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+  };
+
+  const CLASSES = ['11P01','11P02','11P03','11P04','11P05','11P06','11P07','11P08','11P09','11P10','11P11'];
+
+  function generateStudents(c){
+    return Array.from({length: 24}, (_,i)=>({ id:`${c}-${i+1}`, name:`Siswa ${i+1} ${c}` }));
+  }
+
+  const AttendanceStatus = { HADIR:'HADIR', SAKIT:'SAKIT', IZIN:'IZIN', DISP:'DISP', ALPA:'ALPA' };
+  const STATUS_LABEL = { HADIR:'Hadir', SAKIT:'Sakit', IZIN:'Izin', DISP:'Disp', ALPA:'Alpa' };
+  const STATUS_COLOR = { HADIR:'bg-green-500', SAKIT:'bg-orange-500', IZIN:'bg-blue-500', DISP:'bg-amber-500', ALPA:'bg-red-500' };
+  const STATUS_ORDER = ['HADIR','SAKIT','IZIN','DISP','ALPA'];
+
+  const router = { current:'home', goto(p){ this.current=p; render(); document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("text-blue-600",b.dataset.target===p)); } };
+
+  document.querySelectorAll(".nav-btn").forEach(b=> b.addEventListener("click", ()=> router.goto(b.dataset.target)));
+
+  function setDark(v){ document.documentElement.classList.toggle('dark',v); DB.save('theme',v); }
+  const savedTheme = DB.load('theme', false);
+  setDark(savedTheme);
+  document.getElementById('themeToggle').onclick = ()=> setDark(!document.documentElement.classList.contains('dark'));
+
+  const app = document.getElementById("app");
+
+  function renderHome(){
+    app.innerHTML = `
+      <section class="animate-pop-in">
+        <div class="rounded-2xl p-6 bg-white dark:bg-slate-900 shadow-lg">
+          <h2 class="text-2xl font-bold mb-1">Selamat datang di E-Class Pro</h2>
+          <p class="text-slate-500 dark:text-slate-400">Data 100% tersimpan di perangkat Anda. Tidak memerlukan koneksi internet atau server.</p>
+        </div>
+      </section>`;
+  }
+
+  function renderSchedule(){
+    const schedule = DB.load('schedule', {
+      Senin: ['Matematika','PAI','PPKn'],
+      Selasa: ['Informatika','Bahasa Indonesia','PJOK'],
+      Rabu: ['Sejarah','Fisika','BK'],
+      Kamis: ['Produktif','Produktif','Produktif'],
+      Jumat: ['Bahasa Inggris','Seni Budaya','Prakarya']
+    });
+
+    app.innerHTML = `
+      <section class="space-y-6 animate-pop-in">
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 shadow-lg">
+          <h2 class="text-xl font-bold mb-4">Jadwal Pelajaran</h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            ${Object.entries(schedule).map(([hari,mapel])=>`
+              <div class="rounded-xl p-4 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                <h3 class="font-bold mb-2">${hari}</h3>
+                ${mapel.map(m=>`<div class="py-1">• ${m}</div>`).join("")}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </section>`;
+  }
+
+  function renderAttendance(){
+    app.innerHTML = `
+      <div class="animate-pop-in rounded-2xl bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+        <div class="flex flex-wrap justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold">Absensi</h2>
+            <p class="text-slate-400 text-sm">Data tersimpan otomatis di browser.</p>
+          </div>
+          <div class="flex gap-3">
+            <select id="cls" class="rounded-lg border px-3 py-2"></select>
+            <input id="date" type="date" class="rounded-lg border px-3 py-2" />
+          </div>
+        </div>
+        <div id="table"></div>
+      </div>`;
+
+    const select = document.getElementById("cls");
+    CLASSES.forEach(c=> select.innerHTML += `<option>${c}</option>`);
+    select.value = DB.load("lastClass",'11P01');
+    document.getElementById("date").value = DB.load("lastDate", new Date().toISOString().split("T")[0]);
+
+    select.onchange = ()=> saveMetaAndRenderTable();
+    document.getElementById("date").onchange = ()=> saveMetaAndRenderTable();
+
+    function saveMetaAndRenderTable(){
+      DB.save("lastClass", select.value);
+      DB.save("lastDate", document.getElementById("date").value);
+      renderTable();
+    }
+
+    function renderTable(){
+      const c = select.value;
+      const d = document.getElementById("date").value;
+      const key = "ATT_"+c+"_"+d;
+
+      const students = generateStudents(c);
+      const data = DB.load(key, {});
+      students.forEach(s=> { if(!data[s.id]) data[s.id] = null; });
+      DB.save(key,data);
+
+      document.getElementById("table").innerHTML = `
+        <div class="overflow-auto max-h-[65vh] custom-scrollbar mt-3">
+          <table class="w-full">
+            <thead class="sticky top-0 bg-slate-100 dark:bg-slate-800 text-xs">
+              <tr><th class="py-2 px-2 text-left w-10">No</th><th class="py-2 px-2 text-left">Nama</th><th class="py-2 px-2 text-left">Status</th></tr>
+            </thead>
+            <tbody>
+              ${students.map((s,i)=>`
+                <tr class="border-b">
+                  <td class="px-2 py-3">${i+1}</td>
+                  <td class="px-2 py-3">${s.name}</td>
+                  <td class="px-2 py-3">
+                    <div class="flex gap-1">
+                      ${STATUS_ORDER.map(st=>`
+                        <button data-id="${s.id}" data-st="${st}"
+                          class="px-3 py-1 text-xs font-bold rounded border transition ${data[s.id]===st ? STATUS_COLOR[st]+' text-white' : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600'}">
+                          ${STATUS_LABEL[st]}
+                        </button>`).join("")}
+                    </div>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      document.querySelectorAll("button[data-id]").forEach(b=>{
+        b.onclick = ()=>{
+          data[b.dataset.id] = b.dataset.st;
+          DB.save(key,data);
+          renderTable();
+        };
+      });
+    }
+
+    renderTable();
+  }
+
+  function renderAssignments(){
+    const tasks = DB.load("assignments", []);
+    app.innerHTML = `
+      <section class="animate-pop-in p-6 rounded-2xl bg-white dark:bg-slate-900 shadow-xl space-y-4">
+        <h2 class="text-xl font-bold">Tugas</h2>
+        <div id="taskList" class="space-y-2"></div>
+        <div class="flex gap-2">
+          <input id="taskInput" placeholder="Tambah tugas…" class="flex-grow px-3 py-2 rounded-md border">
+          <button id="addTask" class="bg-blue-600 text-white px-4 py-2 rounded-md">Tambah</button>
+        </div>
+      </section>`;
+
+    const listDiv = document.getElementById("taskList");
+    function renderTasks(){
+      listDiv.innerHTML = tasks.length ?
+        tasks.map((t,i)=>`
+          <div class="p-3 rounded-lg border flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+            <span>${t}</span>
+            <button class="px-2 py-1 bg-red-600 text-white text-xs rounded" data-del="${i}">Hapus</button>
+          </div>`).join("")
+        : `<div class="text-sm text-slate-400">Belum ada tugas.</div>`;
+
+      document.querySelectorAll("[data-del]").forEach(btn=>{
+        btn.onclick = ()=>{ tasks.splice(btn.dataset.del,1); DB.save("assignments",tasks); renderTasks(); };
+      });
+    }
+    renderTasks();
+
+    document.getElementById("addTask").onclick = ()=>{
+      const t = document.getElementById("taskInput").value.trim();
+      if(!t) return;
+      tasks.push(t);
+      DB.save("assignments",tasks);
+      document.getElementById("taskInput").value="";
+      renderTasks();
+    };
+  }
+
+  function render(){
+    if (router.current === 'home') return renderHome();
+    if (router.current === 'schedule') return renderSchedule();
+    if (router.current === 'attendance') return renderAttendance();
+    if (router.current === 'assignments') return renderAssignments();
+  }
+
+  router.goto('home');
+})();
+</script>
+
 </body>
 </html>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script> 
-
-<script type="module" src="path/to/attendance.js"></script>
