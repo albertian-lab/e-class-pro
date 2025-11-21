@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanilla JS Global State</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body id="app-body">
+    <div class="container">
+        <h1>App State Manager (Vanilla JS)</h1>
+        
+        <section class="card mb-4">
+            <h2>Theme</h2>
+            <p>Current Theme: <span id="theme-display">dark</span></p>
+            <button id="toggle-theme-btn">Toggle Theme</button>
+        </section>
+
+        <section class="card mb-4">
+            <h2>Admin Status</h2>
+            <p>Admin Logged In: <span id="admin-status-display">No</span></p>
+            <p>Admin Class: <span id="admin-class-display">None</span></p>
+            <button id="login-admin-btn">Login Admin (Class A101)</button>
+            <button id="logout-admin-btn" disabled>Logout Admin</button>
+        </section>
+
+        <section class="card">
+            <h2>Assignments</h2>
+            <button id="add-assignment-btn">Add New Assignment</button>
+            <ul id="assignments-list">
+                </ul>
+        </section>
+    </div>
+
+    <script src="appStore.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
