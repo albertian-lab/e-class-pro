@@ -136,5 +136,8 @@ export const renderScheduleComponent = () => {
     }
 };
 
-// Panggil fungsi render ini di file utama aplikasi Anda setelah DOM dimuat
-// window.addEventListener('DOMContentLoaded', renderScheduleComponent);
+// Di bagian akhir file Schedule.js atau file utama Anda
+window.addEventListener('DOMContentLoaded', () => {
+    // Pastikan Anda memanggil fungsi ini
+    renderScheduleComponent(); 
+});
