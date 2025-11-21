@@ -3,120 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Background - Tailwind CSS + Vanilla JS</title>
+    <title>Dynamic RGB Aurora Scientific Background + Quantum Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* CSS Keyframes untuk Animasi Float */
         @keyframes float {
             0% { transform: translateY(0) rotate(0deg); }
-            33% { transform: translateY(-15px) rotate(5deg); }
-            66% { transform: translateY(15px) rotate(-5deg); }
+            33% { transform: translateY(-14px) rotate(4deg); }
+            66% { transform: translateY(14px) rotate(-4deg); }
             100% { transform: translateY(0) rotate(0deg); }
         }
         .animate-float-js {
             animation-name: float;
             animation-timing-function: ease-in-out;
             animation-iteration-count: infinite;
+            will-change: transform;
         }
 
-        /* Gaya tambahan untuk Grid (meniru style={{ backgroundImage: ... }}) */
         .background-grid {
-            background-image: 
-                linear-gradient(#64748b 1px, transparent 1px), 
+            background-image:
+                linear-gradient(#64748b 1px, transparent 1px),
                 linear-gradient(90deg, #64748b 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 42px 42px;
+        }
+
+        /* Quantum Mode */
+        .quantum {
+            background: radial-gradient(circle at center,
+                rgba(0, 255, 255, 0.18),
+                rgba(0, 0, 130, 0.48),
+                rgba(0, 0, 0, 0.90));
+            color: #dce7ff;
+        }
+        .quantum .card {
+            background: rgba(0, 0, 35, 0.55);
+            border: 1px solid rgba(120, 220, 255, 0.5);
+            backdrop-filter: blur(7px);
         }
     </style>
 </head>
-<body class="antialiased dark:bg-slate-950">
 
-    <div id="background-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-slate-100 dark:bg-slate-950 transition-colors duration-500">
-        
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-200/80 via-transparent to-blue-100/50 dark:from-slate-900 dark:via-slate-950 dark:to-blue-900/40"></div>
+<body class="antialiased bg-slate-100 dark:bg-slate-950 transition-colors duration-500">
 
-        <div class="absolute inset-0 opacity-[0.15] dark:opacity-[0.2] background-grid">
-        </div>
-
-        <div id="particles-container">
-            </div>
+    <!-- Latar -->
+    <div id="background-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,92,0.15),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,255,172,0.13),transparent_60%),radial-gradient(circle_at_bottom,rgba(0,136,255,0.15),transparent_60%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,0,92,0.18),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,255,172,0.16),transparent_60%),radial-gradient(circle_at_bottom,rgba(0,136,255,0.18),transparent_60%)]"></div>
+        <div class="absolute inset-0 opacity-[0.10] dark:opacity-[0.15] background-grid"></div>
+        <div id="particles-container"></div>
     </div>
 
-    <div class="relative z-10 p-10 text-center">
-        <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100">Contoh Konten Aplikasi</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-2">Latar belakang dinamis berjalan di belakang.</p>
+    <!-- Konten -->
+    <main class="relative z-10 p-10 text-center select-none">
+        <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100 quantum:text-[#edf2ff]">
+            Contoh Konten Aplikasi
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 quantum:text-[#d3e2ff] mt-2">
+            Aurora RGB + simbol sains, coding & Quantum Mode.
+        </p>
+    </main>
+
+    <!-- Tombol Mode -->
+    <div class="fixed bottom-6 right-6 flex gap-3 z-20">
+        <button onclick="setMode('light')" class="px-4 py-2 bg-slate-200 rounded-lg shadow">☀️ Light</button>
+        <button onclick="setMode('dark')" class="px-4 py-2 bg-slate-700 text-white rounded-lg shadow">🌙 Dark</button>
+        <button onclick="setMode('quantum')" class="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow font-semibold">⚛ Quantum</button>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function setMode(mode) {
+            document.body.classList.remove("light", "dark", "quantum");
+            document.body.classList.add(mode);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
             const symbols = [
-                // Math
-                "∑", "∫", "π", "√", "∞", "∆", "∂", "∇", "∀", "∃", "∈", "≠", "≈", 
-                "sin", "cos", "tan", "log", "ln", "lim", "f(x)", "dy/dx", 
-                "x", "y", "z", "α", "β", "θ", "λ",
-                // Physics
-                "Ω", "μ", "E=mc²", "F=ma", "λ", "ν", "ℏ", "ρ", "Φ", "Ψ", "ω",
-                // Chemistry
-                "H₂O", "CO₂", "NaCl", "O₂", "pH", "H⁺", "e⁻", "⏣", "⌬", "⚛", "→", "⇌"
+                "∑","∫","π","∞","≈","∆","∂","∇","lim","f(x)","x","y","θ","λ",
+                "E=mc²","F=ma","v","ω","μ","Ω","Φ","Ψ","ρ","ℏ",
+                "H₂O","CO₂","NaCl","O₂","pH","H⁺","e⁻","→","⇌","⚛",
+                "DNA","RNA","ATP","CELL","🧬","β","α","Homo sapiens",
+                "{ }","</>","if()","==","&&","||",";","0/1","//",":()",
+                // Quantum Symbols
+                "|0⟩","|1⟩","⟨φ|ψ⟩","⊕","⊗","⟂","⨂","⧈","τ","Σ"
             ];
-            
+
             const colors = [
-                'text-blue-600/40 dark:text-blue-400/50',
-                'text-purple-600/40 dark:text-purple-400/50',
-                'text-slate-600/40 dark:text-slate-400/50',
-                'text-indigo-600/40 dark:text-indigo-400/50',
-                'text-cyan-600/40 dark:text-cyan-400/50',
-                'text-emerald-600/40 dark:text-emerald-400/50'
+                "text-[rgba(255,60,60,0.32)] dark:text-[rgba(255,75,75,0.40)]",
+                "text-[rgba(0,255,170,0.30)] dark:text-[rgba(0,255,190,0.38)]",
+                "text-[rgba(0,150,255,0.32)] dark:text-[rgba(0,165,255,0.42)]",
+                "text-[rgba(255,130,0,0.28)] dark:text-[rgba(255,150,0,0.36)]",
+                "text-[rgba(190,0,255,0.30)] dark:text-[rgba(210,0,255,0.38)]",
+                // Neon untuk Quantum
+                "text-[rgba(0,255,255,0.34)]",
+                "text-[rgba(0,128,255,0.34)]",
+                "text-[rgba(128,0,255,0.34)]",
+                "text-[rgba(255,0,255,0.34)]"
             ];
 
-            const cols = 10;
+            const cols = 11;
             const rows = 20;
-            const particlesContainer = document.getElementById('particles-container');
+            const container = document.getElementById("particles-container");
+            container.innerHTML = "";
 
-            function createParticles() {
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        // Logika Posisi Acak (mereplikasi useMemo)
-                        const baseX = (c / cols) * 100;
-                        const baseY = (r / rows) * 100;
-                        const randomX = (Math.random() * (100 / cols)); 
-                        const randomY = (Math.random() * (100 / rows));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = (c / cols) * 100 + Math.random() * (100 / cols);
+                    const y = (r / rows) * 100 + Math.random() * (100 / rows);
 
-                        const char = symbols[Math.floor(Math.random() * symbols.length)];
-                        const colorClass = colors[Math.floor(Math.random() * colors.length)];
-                        const size = Math.random() * 1.5 + 1.0 + "rem";
-                        const duration = Math.random() * 40 + 30 + "s";
-                        const delay = Math.random() * -50 + "s";
-                        const opacity = Math.random() * 0.4 + 0.3;
-                        const rotation = Math.floor(Math.random() * 360);
+                    const char = symbols[Math.floor(Math.random() * symbols.length)];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
 
-                        // Membuat elemen DIV (mereplikasi JSX)
-                        const particle = document.createElement('div');
-                        particle.textContent = char;
-                        
-                        // Menambahkan class Tailwind dan class Animasi
-                        particle.className = `absolute font-mono font-bold select-none animate-float-js ${colorClass}`;
-                        
-                        // Menambahkan style inline
-                        particle.style.left = (baseX + randomX) + "%";
-                        particle.style.top = (baseY + randomY) + "%";
-                        particle.style.fontSize = size;
-                        particle.style.opacity = opacity;
-                        particle.style.transform = `rotate(${rotation}deg)`;
-                        particle.style.animationDuration = duration;
-                        particle.style.animationDelay = delay;
-                        particle.style.filter = 'blur(0.3px)';
-                        particle.style.zIndex = '-1';
-                        particle.style.textShadow = '0 0 5px rgba(255,255,255,0.1)';
+                    const p = document.createElement("div");
+                    p.textContent = char;
+                    p.className = `absolute font-mono font-bold animate-float-js ${color}`;
 
-                        particlesContainer.appendChild(particle);
-                    }
+                    p.style.left = x + "%";
+                    p.style.top = y + "%";
+                    p.style.fontSize = `${Math.random() * 1.55 + 0.95}rem`;
+                    p.style.opacity = Math.random() * 0.35 + 0.23;
+                    p.style.animationDuration = `${Math.random() * 30 + 35}s`;
+                    p.style.animationDelay = `${Math.random() * -45}s`;
+                    p.style.filter = "blur(0.4px)";
+                    p.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
+
+                    container.appendChild(p);
                 }
             }
-
-            createParticles();
         });
     </script>
-
 </body>
 </html>
