@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic RGB Aurora Scientific Background + Quantum Mode</title>
+    <title>Dynamic Background — Tailwind + Vanilla JS</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         @keyframes float {
             0% { transform: translateY(0) rotate(0deg); }
-            33% { transform: translateY(-14px) rotate(4deg); }
-            66% { transform: translateY(14px) rotate(-4deg); }
+            33% { transform: translateY(-15px) rotate(5deg); }
+            66% { transform: translateY(15px) rotate(-5deg); }
             100% { transform: translateY(0) rotate(0deg); }
         }
         .animate-float-js {
@@ -24,84 +24,60 @@
             background-image:
                 linear-gradient(#64748b 1px, transparent 1px),
                 linear-gradient(90deg, #64748b 1px, transparent 1px);
-            background-size: 42px 42px;
-        }
-
-        /* Quantum Mode */
-        .quantum {
-            background: radial-gradient(circle at center,
-                rgba(0, 255, 255, 0.18),
-                rgba(0, 0, 130, 0.48),
-                rgba(0, 0, 0, 0.90));
-            color: #dce7ff;
-        }
-        .quantum .card {
-            background: rgba(0, 0, 35, 0.55);
-            border: 1px solid rgba(120, 220, 255, 0.5);
-            backdrop-filter: blur(7px);
+            background-size: 40px 40px;
         }
     </style>
 </head>
 
 <body class="antialiased bg-slate-100 dark:bg-slate-950 transition-colors duration-500">
 
-    <!-- Latar -->
-    <div id="background-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,92,0.15),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,255,172,0.13),transparent_60%),radial-gradient(circle_at_bottom,rgba(0,136,255,0.15),transparent_60%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,0,92,0.18),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,255,172,0.16),transparent_60%),radial-gradient(circle_at_bottom,rgba(0,136,255,0.18),transparent_60%)]"></div>
-        <div class="absolute inset-0 opacity-[0.10] dark:opacity-[0.15] background-grid"></div>
+    <!-- Background Layer -->
+    <div id="background-container"
+        class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+
+        <!-- Lapisan gradasi -->
+        <div class="absolute inset-0 bg-gradient-to-br
+            from-slate-200/80 via-transparent to-blue-100/50
+            dark:from-slate-900 dark:via-slate-950 dark:to-blue-900/40">
+        </div>
+
+        <!-- Grid background -->
+        <div class="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] background-grid"></div>
+
+        <!-- Container Partikel -->
         <div id="particles-container"></div>
     </div>
 
-    <!-- Konten -->
+    <!-- MAIN CONTENT -->
     <main class="relative z-10 p-10 text-center select-none">
-        <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100 quantum:text-[#edf2ff]">
-            Contoh Konten Aplikasi
-        </h1>
-        <p class="text-gray-600 dark:text-gray-300 quantum:text-[#d3e2ff] mt-2">
-            Aurora RGB + simbol sains, coding & Quantum Mode.
-        </p>
+        <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100">Contoh Konten Aplikasi</h1>
+        <p class="text-gray-600 dark:text-gray-300 mt-2">Latar belakang dinamis berjalan di belakang.</p>
     </main>
 
-    <!-- Tombol Mode -->
-    <div class="fixed bottom-6 right-6 flex gap-3 z-20">
-        <button onclick="setMode('light')" class="px-4 py-2 bg-slate-200 rounded-lg shadow">☀️ Light</button>
-        <button onclick="setMode('dark')" class="px-4 py-2 bg-slate-700 text-white rounded-lg shadow">🌙 Dark</button>
-        <button onclick="setMode('quantum')" class="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow font-semibold">⚛ Quantum</button>
-    </div>
-
     <script>
-        function setMode(mode) {
-            document.body.classList.remove("light", "dark", "quantum");
-            document.body.classList.add(mode);
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
             const symbols = [
-                "∑","∫","π","∞","≈","∆","∂","∇","lim","f(x)","x","y","θ","λ",
-                "E=mc²","F=ma","v","ω","μ","Ω","Φ","Ψ","ρ","ℏ",
-                "H₂O","CO₂","NaCl","O₂","pH","H⁺","e⁻","→","⇌","⚛",
-                "DNA","RNA","ATP","CELL","🧬","β","α","Homo sapiens",
-                "{ }","</>","if()","==","&&","||",";","0/1","//",":()",
-                // Quantum Symbols
-                "|0⟩","|1⟩","⟨φ|ψ⟩","⊕","⊗","⟂","⨂","⧈","τ","Σ"
+                "∑","∫","π","√","∞","∆","∂","∇","∀","∃","∈","≠","≈",
+                "sin","cos","tan","log","ln","lim","f(x)","dy/dx",
+                "x","y","z","α","β","θ","λ",
+                "Ω","μ","E=mc²","F=ma","ν","ℏ","ρ","Φ","Ψ","ω",
+                "H₂O","CO₂","NaCl","O₂","pH","H⁺","e⁻","⚛","→","⇌"
             ];
 
             const colors = [
-                "text-[rgba(255,60,60,0.32)] dark:text-[rgba(255,75,75,0.40)]",
-                "text-[rgba(0,255,170,0.30)] dark:text-[rgba(0,255,190,0.38)]",
-                "text-[rgba(0,150,255,0.32)] dark:text-[rgba(0,165,255,0.42)]",
-                "text-[rgba(255,130,0,0.28)] dark:text-[rgba(255,150,0,0.36)]",
-                "text-[rgba(190,0,255,0.30)] dark:text-[rgba(210,0,255,0.38)]",
-                // Neon untuk Quantum
-                "text-[rgba(0,255,255,0.34)]",
-                "text-[rgba(0,128,255,0.34)]",
-                "text-[rgba(128,0,255,0.34)]",
-                "text-[rgba(255,0,255,0.34)]"
+                'text-blue-500/40 dark:text-blue-400/45',
+                'text-purple-500/40 dark:text-purple-400/45',
+                'text-slate-500/40 dark:text-slate-400/45',
+                'text-indigo-500/40 dark:text-indigo-400/45',
+                'text-cyan-500/40 dark:text-cyan-400/45',
+                'text-emerald-500/40 dark:text-emerald-400/45'
             ];
 
-            const cols = 11;
+            const cols = 10;
             const rows = 20;
             const container = document.getElementById("particles-container");
+
+            // cegah duplikasi partikel (super penting)
             container.innerHTML = "";
 
             for (let r = 0; r < rows; r++) {
@@ -118,11 +94,11 @@
 
                     p.style.left = x + "%";
                     p.style.top = y + "%";
-                    p.style.fontSize = `${Math.random() * 1.55 + 0.95}rem`;
-                    p.style.opacity = Math.random() * 0.35 + 0.23;
+                    p.style.fontSize = `${Math.random() * 1.4 + 0.9}rem`;
+                    p.style.opacity = Math.random() * 0.4 + 0.25;
                     p.style.animationDuration = `${Math.random() * 30 + 35}s`;
-                    p.style.animationDelay = `${Math.random() * -45}s`;
-                    p.style.filter = "blur(0.4px)";
+                    p.style.animationDelay = `${Math.random() * -40}s`;
+                    p.style.filter = "blur(0.3px)";
                     p.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
 
                     container.appendChild(p);
@@ -130,5 +106,6 @@
             }
         });
     </script>
+
 </body>
 </html>
